@@ -1,4 +1,4 @@
-import { admin, getAuth, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail } from "../config/firebase.js";
+import { db, admin, getAuth, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail } from "../config/firebase.js";
 
 const auth = getAuth();
 
@@ -17,7 +17,6 @@ export const registerPassengerController = async (req, res) => {
         email: email,
         password: password,
         displayName: `${firstname} ${lastname}`,
-        photoURL: ""
     })
     .then((userCredential) => {
         res.status(200).json({message: "User created Successfully", userCredential})

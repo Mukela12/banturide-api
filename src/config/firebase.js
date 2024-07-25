@@ -6,10 +6,11 @@ import {
     sendPasswordResetEmail,
 } from "firebase/auth";
 import { initializeApp } from "firebase/app";
-import dotenv from "dotenv";
-import admin from "firebase-admin";
 import { readFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
+import { getFirestore } from 'firebase-admin/firestore';
+import dotenv from "dotenv";
+import admin from "firebase-admin";
 import path from 'path';
 
 dotenv.config();
@@ -37,5 +38,7 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccountJson),
 });
 
-export { admin, getAuth, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail };
+const db = getFirestore();
+
+export { db, admin, getAuth, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail };
 
