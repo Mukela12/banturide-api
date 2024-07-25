@@ -1,6 +1,5 @@
 import {
     getAuth,
-    createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     signOut,
     sendEmailVerification,
@@ -17,8 +16,6 @@ dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-//ensure to include the firebase service json file in your src directory
 
 const serviceAccountPath = path.resolve(__dirname, '../../firebase/FirebaseService.json');
 
@@ -40,5 +37,5 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccountJson),
 });
 
-export { admin, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail };
+export { admin, getAuth, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail };
 

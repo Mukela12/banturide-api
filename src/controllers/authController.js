@@ -17,6 +17,7 @@ export const registerPassengerController = async (req, res) => {
         email: email,
         password: password,
         displayName: `${firstname} ${lastname}`,
+        photoURL: ""
     })
     .then((userCredential) => {
         res.status(200).json({message: "User created Successfully", userCredential})
