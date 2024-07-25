@@ -10,13 +10,13 @@ router.post("/create-passenger", registerPassengerController);
 
 router.post("/passenger-signin", signinPassengerController);
 
-router.post("/passenger-signout", signoutPassengerController)
+router.post("/passenger-signout", signoutPassengerController);
 
 // driver routes
 
 router.post("/create-driver", registerDriverController);
 
-router.post("/driver-signin", signinDriverController)
+router.post("/driver-signin", signinDriverController);
 
 router.post("/driver-signout", signoutDriverController);
 

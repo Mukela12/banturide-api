@@ -1,33 +1,29 @@
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail } from "../config/firebase.js";
+import { admin, getAuth, signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail } from "../config/firebase.js";
 
 const auth = getAuth();
 
 export const registerPassengerController = async (req, res) => {
 
-    const { email, password } = req.body;
+    const { email, password, firstname, lastname, gender } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || !firstname || !lastname) {
         return res.status(422).json({
             email: "Email is required",
             password: "Password is required",
         });
     }
 
-    createUserWithEmailAndPassword(auth, email, password)
+    admin.auth().createUser({
+        email: email,
+        password: password,
+        displayName: `${firstname} ${lastname}`,
+    })
     .then((userCredential) => {
-        const idToken = userCredential._tokenResponse.idToken;
-        if(idToken){
-            res.cookie('access_token', idToken, {
-                httpOnly: true
-            });
-            res.status(200).json({ message: "User created successfully", userCredential })
-        } else {
-            res.status(500).json({ error: "Internal Server Error" })
-        }
+        res.status(200).json({message: "User created Successfully", userCredential})
     })
     .catch((error) => {
-        const errorMessage = error.message || "An error occurred while registering user";
-        res.status(500).json({ error: errorMessage });
+        const errorMessage = error.message || "An error occured while registering user";
+        res.status(500).json({error: errorMessage})
     })
 }
 
