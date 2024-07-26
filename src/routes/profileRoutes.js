@@ -18,7 +18,14 @@ import {
     getDriverInfo
 } from '../controllers/DriverProfileController.js';
 
+import { verifyToken } from "./middleware/index.js";
+
+
 const router = express.Router();
+
+
+router.use(verifyToken);
+
 
 // Define routes USERS
 router.get('/profile', getUserProfile); // Changed to use the current user
