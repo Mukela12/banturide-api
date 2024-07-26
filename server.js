@@ -9,6 +9,8 @@ import profile from "./src/routes/profileRoutes.js"
 import PaymentRoute from "./src/routes/PaymentRoute.js";
 import favoriteRoutes from './src/routes/favorites.js';
 import driverlocation from './src/routes/DriverRoutes.js'
+import driverExtrasRoutes from './src/routes/DriverExtrasRoutes.js';
+import reviewRoutes from './src/routes/ReviewRoutes.js';
 
 dotenv.config();
 
@@ -25,6 +27,9 @@ app.use('/profile', profile);
 app.use('/payment', PaymentRoute);
 app.use('/favorites', favoriteRoutes);
 app.use('/driverlocation', driverlocation)
+app.use('/driverstats', driverExtrasRoutes);
+app.use('/reviews', reviewRoutes);
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on PORT ${PORT}`)
