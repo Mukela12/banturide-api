@@ -2,7 +2,6 @@ import express from "express";
 import {
   PassengerBookingRequest,
   cancelBooking,
-  requestDriverCancellation,
   driverAtPickupLocation,
   startRide,
   endRide,
