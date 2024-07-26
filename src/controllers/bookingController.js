@@ -16,6 +16,19 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
     return distance;
 }
 
+// Helper function to send notifications
+async function sendNotification(token, title, body, data) {
+    const message = {
+        token: token,
+        notification: {
+            title: title,
+            body: body
+        },
+        data: data
+    };
+    await admin.messaging().send(message);
+}
+
 // Passenger Booking Request
 export const PassengerBookingRequest = async (req, res) => {
     const { pickUpLatitude, pickUpLongitude, dropOffLatitude, dropOffLongitude, price, hasThirdStop, thirdStopLatitude, thirdStopLongitude } = req.body;
@@ -44,6 +57,10 @@ export const PassengerBookingRequest = async (req, res) => {
     try {
         const bookingRef = db.collection('bookings').doc();
         await bookingRef.set(newBooking);
+
+        // Notify user about booking confirmation
+        const userToken = await getUserToken(user.uid);
+        await sendNotification(userToken, "Booking Request", "Your booking request has been received successfully!", { bookingId: bookingRef.id });
 
         return res.status(200).json({
             success: true,
@@ -103,6 +120,9 @@ export const searchDriversForBooking = async (req, res) => {
                                 });
                             });
 
+                            const userToken = await getUserToken(booking.userId);
+                            await sendNotification(userToken, "Drivers Found", "Available drivers found near your location.", { bookingId: bookingId });
+
                             return res.status(200).json({
                                 success: true,
                                 message: "Drivers found",
@@ -113,9 +133,11 @@ export const searchDriversForBooking = async (req, res) => {
                 });
             });
 
-        setTimeout(() => {
+        setTimeout(async () => {
             if (!searchComplete) {
                 unsubscribe();
+                const userToken = await getUserToken(booking.userId);
+                await sendNotification(userToken, "No Drivers Found", "No drivers found within the time limit.", { bookingId: bookingId });
                 res.status(404).json({ success: false, message: "No drivers found within the time limit." });
             }
         }, 60000);
@@ -156,6 +178,14 @@ export const assignDriverToBooking = async (req, res) => {
             status: 'unavailable'
         });
 
+        // Notify user and driver about driver assignment
+        const booking = bookingSnapshot.data();
+        const userToken = await getUserToken(booking.userId);
+        await sendNotification(userToken, "Driver Assigned", "A driver has been assigned to your booking.", { bookingId: bookingId });
+
+        const driverToken = await getDriverToken(driverId);
+        await sendNotification(driverToken, "New Booking", "You have been assigned a new booking.", { bookingId: bookingId });
+
         return res.status(200).json({
             success: true,
             message: "Driver selected and booking confirmed successfully!",
@@ -195,7 +225,15 @@ export const cancelBooking = async (req, res) => {
             await driverRef.update({
                 status: 'available'
             });
+
+            // Notify driver about booking cancellation
+            const driverToken = await getDriverToken(booking.driverId);
+            await sendNotification(driverToken, "Booking Cancelled", "The booking has been cancelled by the user.", { bookingId: bookingId });
         }
+
+        // Notify user about booking cancellation
+        const userToken = await getUserToken(booking.userId);
+        await sendNotification(userToken, "Booking Cancelled", "Your booking has been cancelled successfully.", { bookingId: bookingId });
 
         return res.status(200).json({
             success: true,
@@ -230,6 +268,11 @@ export const driverAtPickupLocation = async (req, res) => {
             driverArrivedAtPickup: true
         });
 
+        // Notify user about driver arrival
+        const booking = bookingSnapshot.data();
+        const userToken = await getUserToken(booking.userId);
+        await sendNotification(userToken, "Driver Arrived", "Your driver has arrived at the pickup location.", { bookingId: bookingId });
+
         return res.status(200).json({
             success: true,
             message: "Driver has arrived at pickup location.",
@@ -262,6 +305,11 @@ export const startRide = async (req, res) => {
         await bookingRef.update({
             status: 'ongoing'
         });
+
+        // Notify user about ride start
+        const booking = bookingSnapshot.data();
+        const userToken = await getUserToken(booking.userId);
+        await sendNotification(userToken, "Ride Started", "Your ride has started.", { bookingId: bookingId });
 
         return res.status(200).json({
             success: true,
@@ -297,6 +345,11 @@ export const endRide = async (req, res) => {
             status: 'completed'
         });
 
+        // Notify user about ride end
+        const booking = bookingSnapshot.data();
+        const userToken = await getUserToken(booking.userId);
+        await sendNotification(userToken, "Ride Completed", "Your ride has been completed successfully.", { bookingId: bookingId });
+
         return res.status(200).json({
             success: true,
             message: "Ride has ended.",
@@ -310,3 +363,14 @@ export const endRide = async (req, res) => {
         });
     }
 };
+
+// Helper functions to get tokens
+async function getUserToken(userId) {
+    const userSnapshot = await db.collection('users').doc(userId).get();
+    return userSnapshot.data().fcmToken;
+}
+
+async function getDriverToken(driverId) {
+    const driverSnapshot = await db.collection('drivers').doc(driverId).get();
+    return driverSnapshot.data().fcmToken;
+}
