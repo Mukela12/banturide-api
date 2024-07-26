@@ -68,12 +68,11 @@ export const getDriverStatistics = async (req, res) => {
         }
 
         const driverData = driverDoc.data();
-        const totalEarnings = await getTotalEarnings({ currentUser: user }, res);
+        const totalEarnings = await getTotalEarningsInternal({ currentUser: user }, res);
         const completedRides = await db.collection('bookings').where('driverId', '==', user.uid).where('status', '==', 'completed').get();
 
         const statistics = {
             totalEarnings: totalEarnings.totalEarnings,
-            rewardPoints: driverData.rewardPoints || 0,
             completedRides: completedRides.size,
         };
 
@@ -85,7 +84,7 @@ export const getDriverStatistics = async (req, res) => {
 };
 
 // Helper function for getting total earnings (used internally)
-const getTotalEarnings = async (req, res) => {
+const getTotalEarningsInternal = async (req, res) => {
     const user = req.currentUser;
 
     try {
