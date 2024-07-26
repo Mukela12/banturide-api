@@ -19,7 +19,6 @@ router.post("/search-driver", searchDriversForBooking);
 router.post("/select-driver", assignDriverToBooking);
 
 // Driver post routes
-router.post("/request-driver-cancellation", requestDriverCancellation);
 router.post("/driver-at-pickup-location", driverAtPickupLocation);
 router.post("/start-ride", startRide);
 router.post("/end-ride", endRide);
