@@ -9,7 +9,11 @@ import {
   assignDriverToBooking
 } from "../controllers/bookingController.js";
 
+import { verifyToken } from "./middleware/index.js";
+
 const router = express.Router();
+
+router.use(verifyToken);
 
 // User post routes
 router.post("/book-request", PassengerBookingRequest);
