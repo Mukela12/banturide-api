@@ -1,7 +1,5 @@
 import { admin } from "../config/firebase.js";
 
-import { admin } from "../config/firebase.js";
-
 export const verifyToken = async (req, res, next) => {
     const idToken = req.headers.authorization?.split('Bearer ')[1];
 
