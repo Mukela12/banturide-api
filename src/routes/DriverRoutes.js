@@ -1,8 +1,9 @@
 import express from 'express';
-import { updateDriverLocation } from '../controllers/DriverLocationController.js';
+import { updateDriverLocation, updateFCMToken } from '../controllers/DriverLocationController.js';
 
 const router = express.Router();
 
-router.post('/update-location', updateDriverLocation); // New route to update driver location
+router.post('/update-location', updateDriverLocation); // Update driver location
+router.post('/update-fcm-token', updateFCMToken); // Update FCM token
 
 export default router;
