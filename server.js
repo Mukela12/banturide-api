@@ -4,7 +4,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 
 import userRoutes from "./src/routes/userRoutes.js";
-import bookingRide from "./src/routes/bookingRide.js"
+import bookingRoutes from "./src/routes/bookingRoutes.js"
 
 dotenv.config();
 
@@ -16,7 +16,7 @@ app.use(cookieParser())
 app.use(cors());
 
 app.use("/auth", userRoutes);
-app.use("/Booking", bookingRide)
+app.use("/Booking", bookingRoutes)
 
 app.listen(PORT, () => {
     console.log(`Server is running on PORT ${PORT}`)
