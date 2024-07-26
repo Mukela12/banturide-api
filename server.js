@@ -22,11 +22,11 @@ app.use(cookieParser())
 app.use(cors());
 
 app.use("/auth", userRoutes);
-app.use("/Booking", bookingRoutes)
+app.use("/Booking", bookingRoutes);
 app.use('/profile', profile);
 app.use('/payment', PaymentRoute);
 app.use('/favorites', favoriteRoutes);
-app.use('/driverlocation', driverlocation)
+app.use('/driverlocation', driverlocation);
 app.use('/driverstats', driverExtrasRoutes);
 app.use('/reviews', reviewRoutes);
 

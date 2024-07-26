@@ -49,14 +49,18 @@ export const signinPassengerController = async (req, res) => {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const idToken = await userCredential.user.getIdToken();
 
+        // Verify the ID token
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const uid = decodedToken.uid;
+
         res.cookie('access_token', idToken, {
             httpOnly: true,
         });
 
         res.status(200).json({ message: "User logged in successfully", userCredential });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: error.message || "An error occurred while logging in" });
+        console.error("Error in login API:", error);
+        res.status(500).json({ error: error.message || "An error occurred while logging in", success: false });
     }
 };
 
