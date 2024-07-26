@@ -6,6 +6,7 @@ import cors from "cors";
 import userRoutes from "./src/routes/userRoutes.js";
 import bookingRoutes from "./src/routes/bookingRoutes.js"
 import profile from "./src/routes/profileRoutes.js"
+import PaymentRoute from "./src/routes/PaymentRoute.js";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(cors());
 app.use("/auth", userRoutes);
 app.use("/Booking", bookingRoutes)
 app.use('/profile', profile);
+app.use('/payment', PaymentRoute);
 
 app.listen(PORT, () => {
     console.log(`Server is running on PORT ${PORT}`)
