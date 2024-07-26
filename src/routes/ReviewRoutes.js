@@ -1,6 +1,6 @@
 import express from 'express';
 import { addReview, getDriverReviews } from '../controllers/ReviewsController.js';
-import { verifyToken } from "./middleware/index.js";
+import { verifyToken } from "../middleware/index.js";
 
 const router = express.Router();
 

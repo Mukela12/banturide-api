@@ -6,7 +6,7 @@ import {
     deleteFavoriteLocation
 } from '../controllers/FavoritesController.js';
 
-import { verifyToken } from "./middleware/index.js";
+import { verifyToken } from "../middleware/index.js";
 
 const router = express.Router();
 

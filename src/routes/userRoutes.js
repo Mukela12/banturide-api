@@ -2,7 +2,7 @@ import express from 'express';
 
 import { registerDriverController, registerPassengerController, signinDriverController, signinPassengerController, signoutDriverController, signoutPassengerController } from '../controllers/authController.js';
 
-import { verifyToken } from "./middleware/index.js";
+import { verifyToken } from "../middleware/index.js";
 
 
 const router = express.Router();

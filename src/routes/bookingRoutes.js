@@ -9,7 +9,7 @@ import {
   assignDriverToBooking
 } from "../controllers/bookingController.js";
 
-import { verifyToken } from "./middleware/index.js";
+import { verifyToken } from "../middleware/index.js";
 
 const router = express.Router();
 
