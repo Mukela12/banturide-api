@@ -1,3 +1,5 @@
+// Update adminRoutes.js
+
 import express from "express";
 import { 
     approveDriverApplication, 
@@ -6,7 +8,11 @@ import {
     getAllDriverApplications,
     createAdmin,
     loginAdmin,
-    getDriver // Import the new function
+    getDriverApplicationById,
+    getAllChildPickupApplications,
+    approveChildPickupApplication,
+    denyChildPickupApplication,
+    getChildPickupApplicationById // New import
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -18,8 +24,14 @@ router.post("/login-admin", loginAdmin);
 // Driver applications and complaints routes
 router.get("/get-driver-applications", getAllDriverApplications);
 router.get("/get-complaints", getAllComplaints);
-router.get("/get-driver/:driverId", getDriver); // Add the get-driver route
-router.post("/approve-driver-application", approveDriverApplication);
+router.get("/get-driver-application/:id", getDriverApplicationById);
+router.post("/approve-driver-application", approveDriverApplication); 
 router.post("/deny-driver-application", denyDriverApplication);
+
+// Child pickup application routes
+router.get("/get-child-pickup-applications", getAllChildPickupApplications);
+router.get("/get-child-pickup-application/:id", getChildPickupApplicationById); // New route
+router.post("/approve-child-pickup-application", approveChildPickupApplication);
+router.post("/deny-child-pickup-application", denyChildPickupApplication);
 
 export default router;

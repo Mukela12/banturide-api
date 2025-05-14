@@ -1,6 +1,4 @@
-import { db, getAuth } from "../config/firebase.js";
-
-const auth = getAuth();
+import { db, auth } from "../config/firebase.js";
 
 export const registerDriverController = async (req, res) => {
 

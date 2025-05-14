@@ -59,13 +59,13 @@ export const loginAdmin = async (req, res) => {
 };
 
 // Get driver application by ID
-export const getDriverById = async (req, res) => {
-    const { id } = req.params; // Get the driver ID from the request parameters
+export const getDriverApplicationById = async (req, res) => {
+    const { id } = req.params; // Get the application ID from the request parameters
 
     if (!id) {
         return res.status(400).json({
             success: false,
-            message: "Driver ID is required"
+            message: "Application ID is required"
         });
     }
 
@@ -84,11 +84,7 @@ export const getDriverById = async (req, res) => {
             ...applicationDoc.data()
         };
 
-        return res.status(200).json({
-            success: true,
-            application: applicationData
-        });
-
+        return res.status(200).json(applicationData); // Simplified response
     } catch (error) {
         console.error("Error fetching driver application:", error);
         return res.status(500).json({
@@ -292,7 +288,6 @@ export const denyDriverApplication = async (req, res) => {
                 transaction.get(driverRef)
             ]);
 
-            // Validate the reads
             if (!applicationDoc.exists) {
                 throw new Error("Driver application not found");
             }
@@ -301,9 +296,8 @@ export const denyDriverApplication = async (req, res) => {
                 throw new Error("Driver not found");
             }
 
-            // After all reads are complete, perform the writes
             const updateData = {
-                driverVerificationStatus: 'failed',
+                driverVerificationStatus: 'denied', // Change from 'failed' to 'denied'
                 reason
             };
 
@@ -323,6 +317,192 @@ export const denyDriverApplication = async (req, res) => {
         return res.status(statusCode).json({
             success: false,
             message: error.message || "Internal server error"
+        });
+    }
+};
+
+// Add to adminController.js
+
+export const getChildPickupApplicationById = async (req, res) => {
+    const { id } = req.params; // Get the application ID from the request parameters
+
+    if (!id) {
+        return res.status(400).json({
+            success: false,
+            message: "Application ID is required"
+        });
+    }
+
+    try {
+        const applicationDoc = await db.collection('child-pickup-applications').doc(id).get();
+
+        if (!applicationDoc.exists) {
+            return res.status(404).json({
+                success: false,
+                message: "Child pickup application not found"
+            });
+        }
+
+        const applicationData = {
+            id: applicationDoc.id,
+            ...applicationDoc.data()
+        };
+
+        return res.status(200).json({
+            success: true,
+            application: applicationData
+        });
+
+    } catch (error) {
+        console.error("Error fetching child pickup application:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
+// Approve a child pickup application
+export const approveChildPickupApplication = async (req, res) => {
+    const { applicationId, driverId } = req.body;
+
+    if (!applicationId || !driverId) {
+        return res.status(400).json({
+            success: false,
+            message: "Application ID and driver ID are required"
+        });
+    }
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const applicationRef = db.collection('child-pickup-applications').doc(applicationId);
+            const driverRef = db.collection('drivers').doc(driverId);
+
+            const [applicationDoc, driverDoc] = await Promise.all([
+                transaction.get(applicationRef),
+                transaction.get(driverRef)
+            ]);
+
+            if (!applicationDoc.exists) {
+                throw new Error("Child pickup application not found");
+            }
+
+            if (!driverDoc.exists) {
+                throw new Error("Driver not found");
+            }
+
+            transaction.update(applicationRef, {
+                childPickUpStatus: 'approved',
+                childPickUpDenialReason: "",
+                updatedAt: FieldValue.serverTimestamp()
+            });
+
+            transaction.update(driverRef, {
+                childPickUpStatus: 'approved',
+                childPickUpDenialReason: ""
+            });
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Child pickup application approved",
+            driverId
+        });
+
+    } catch (error) {
+        console.error("Error approving child pickup application:", error);
+        const statusCode = error.message.includes("not found") ? 404 : 500;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message || "Internal server error"
+        });
+    }
+};
+
+// Deny a child pickup application
+export const denyChildPickupApplication = async (req, res) => {
+    const { applicationId, driverId, reason } = req.body;
+
+    if (!applicationId || !driverId || !reason) {
+        return res.status(400).json({
+            success: false,
+            message: "Application ID, driver ID, and reason are required"
+        });
+    }
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const applicationRef = db.collection('child-pickup-applications').doc(applicationId);
+            const driverRef = db.collection('drivers').doc(driverId);
+
+            const [applicationDoc, driverDoc] = await Promise.all([
+                transaction.get(applicationRef),
+                transaction.get(driverRef)
+            ]);
+
+            if (!applicationDoc.exists) {
+                throw new Error("Child pickup application not found");
+            }
+
+            if (!driverDoc.exists) {
+                throw new Error("Driver not found");
+            }
+
+            transaction.update(applicationRef, {
+                childPickUpStatus: 'denied',
+                childPickUpDenialReason: reason,
+                updatedAt: FieldValue.serverTimestamp()
+            });
+
+            transaction.update(driverRef, {
+                childPickUpStatus: 'denied',
+                childPickUpDenialReason: reason
+            });
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Child pickup application denied",
+            driverId
+        });
+
+    } catch (error) {
+        console.error("Error denying child pickup application:", error);
+        const statusCode = error.message.includes("not found") ? 404 : 500;
+        return res.status(statusCode).json({
+            success: false,
+            message: error.message || "Internal server error"
+        });
+    }
+};
+
+// Get all child pickup applications
+export const getAllChildPickupApplications = async (req, res) => {
+    try {
+        const applicationsSnapshot = await db.collection('child-pickup-applications').get();
+        
+        if (applicationsSnapshot.empty) {
+            return res.status(404).json({
+                success: false,
+                message: "No child pickup applications found"
+            });
+        }
+
+        const applications = applicationsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        return res.status(200).json({
+            success: true,
+            applications
+        });
+
+    } catch (error) {
+        console.error("Error fetching child pickup applications:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
         });
     }
 };
