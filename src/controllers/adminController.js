@@ -70,6 +70,7 @@ export const getDriverApplicationById = async (req, res) => {
     }
 
     try {
+        // Get the application document
         const applicationDoc = await db.collection('driver-applications').doc(id).get();
 
         if (!applicationDoc.exists) {
@@ -84,7 +85,56 @@ export const getDriverApplicationById = async (req, res) => {
             ...applicationDoc.data()
         };
 
-        return res.status(200).json(applicationData); // Simplified response
+        // Get driver information if driverId exists
+        let driverInfo = {
+            driverFullName: 'Unknown Driver',
+            driverPhoneNumber: null,
+            driverRating: null,
+            driverStatus: null
+        };
+
+        if (applicationData.driverId) {
+            try {
+                const driverDoc = await db.collection('drivers').doc(applicationData.driverId).get();
+                
+                if (driverDoc.exists) {
+                    const driverData = driverDoc.data();
+                    driverInfo = {
+                        driverFullName: driverData.fullName || 'Unknown Driver',
+                        driverPhoneNumber: driverData.phoneNumber || null,
+                        driverRating: driverData.driverRating || null,
+                        driverStatus: driverData.driverStatus || null
+                    };
+                } else {
+                    // If driver document doesn't exist, try to find by uid field
+                    const driverByUidSnapshot = await db.collection('drivers')
+                        .where('uid', '==', applicationData.driverId)
+                        .limit(1)
+                        .get();
+                    
+                    if (!driverByUidSnapshot.empty) {
+                        const driverData = driverByUidSnapshot.docs[0].data();
+                        driverInfo = {
+                            driverFullName: driverData.fullName || 'Unknown Driver',
+                            driverPhoneNumber: driverData.phoneNumber || null,
+                            driverRating: driverData.driverRating || null,
+                            driverStatus: driverData.driverStatus || null
+                        };
+                    }
+                }
+            } catch (driverError) {
+                console.error("Error fetching driver information:", driverError);
+                // Continue with default driver info if driver fetch fails
+            }
+        }
+
+        // Combine application data with driver information
+        const enhancedApplicationData = {
+            ...applicationData,
+            ...driverInfo
+        };
+
+        return res.status(200).json(enhancedApplicationData);
     } catch (error) {
         console.error("Error fetching driver application:", error);
         return res.status(500).json({
