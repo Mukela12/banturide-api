@@ -143,6 +143,7 @@ export const createAdmin = async (req, res) => {
 
 export const getAllDriverApplications = async (req, res) => {
     try {
+        // Get all driver applications
         const applicationsSnapshot = await db.collection('driver-applications').get();
         
         if (applicationsSnapshot.empty) {
@@ -152,14 +153,61 @@ export const getAllDriverApplications = async (req, res) => {
             });
         }
 
+        // Map applications and extract unique driver IDs
         const applications = applicationsSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }));
 
+        // Extract unique driver IDs
+        const driverIds = [...new Set(applications.map(app => app.driverId).filter(Boolean))];
+
+        // Fetch all drivers in batch
+        const driversMap = new Map();
+        
+        if (driverIds.length > 0) {
+            // Firestore 'in' queries are limited to 10 items, so we need to batch them
+            const batchSize = 10;
+            const driverBatches = [];
+            
+            for (let i = 0; i < driverIds.length; i += batchSize) {
+                const batch = driverIds.slice(i, i + batchSize);
+                driverBatches.push(batch);
+            }
+
+            // Execute all batches in parallel
+            const driverPromises = driverBatches.map(batch => 
+                db.collection('drivers').where('uid', 'in', batch).get()
+            );
+
+            const driverSnapshots = await Promise.all(driverPromises);
+
+            // Build the drivers map
+            driverSnapshots.forEach(snapshot => {
+                snapshot.docs.forEach(doc => {
+                    const driverData = doc.data();
+                    driversMap.set(driverData.uid || doc.id, {
+                        fullName: driverData.fullName || 'Unknown Driver',
+                        phoneNumber: driverData.phoneNumber || null,
+                        driverRating: driverData.driverRating || null,
+                        driverStatus: driverData.driverStatus || null
+                    });
+                });
+            });
+        }
+
+        // Combine applications with driver information
+        const applicationsWithDriverNames = applications.map(application => ({
+            ...application,
+            driverFullName: driversMap.get(application.driverId)?.fullName || 'Unknown Driver',
+            driverPhoneNumber: driversMap.get(application.driverId)?.phoneNumber || null,
+            driverRating: driversMap.get(application.driverId)?.driverRating || null,
+            driverStatus: driversMap.get(application.driverId)?.driverStatus || null
+        }));
+
         return res.status(200).json({
             success: true,
-            applications
+            applications: applicationsWithDriverNames
         });
 
     } catch (error) {
